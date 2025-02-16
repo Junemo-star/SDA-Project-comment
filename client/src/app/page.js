@@ -15,12 +15,11 @@ export default function Home() {
         const response = await axios.get('http://localhost:1337/api/messages');
         const messages = response.data.data;
 
-        setMessages(messages);  
+        setMessages(messages);
 
         if (messages.length > 0) {
           const latestMessageId = Math.max(...messages.map(msg => msg.messageid));
-          setLatestMessageId(latestMessageId);  
-          console.log("Latest message ID:", latestMessageId);
+          setLatestMessageId(latestMessageId);
         }
 
         console.log("Fetched messages:", messages);
@@ -37,6 +36,9 @@ export default function Home() {
     socket.on('newMessage', (message) => {
       console.log("Received new message:", message.data); // ตรวจสอบว่าได้รับข้อความหรือไม่
       setMessages((prevMessages) => [...prevMessages, message.data]);
+      setLatestMessageId(message.data.messageid);
+      console.log("Latest message ID:", latestMessageId);
+
     });
 
 
