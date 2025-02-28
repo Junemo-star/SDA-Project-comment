@@ -12,14 +12,22 @@ export default {
       }
     });
 
+    let connectionCount = 0;
+
     io.on('connection', (socket) => {
       console.log('🔌 New client connected:', socket.id);
-
-      // บันทึก io ไว้ใน strapi เพื่อให้ใช้ได้ในที่อื่น
       (strapi as any).io = io;
+
+      connectionCount++;
+      io.emit('updateConnectionCount', connectionCount);
+      console.log('A user connected. Total connections:', connectionCount);
 
       socket.on('disconnect', () => {
         console.log('❌ Client disconnected:', socket.id);
+
+        connectionCount--;
+        io.emit('updateConnectionCount', connectionCount);
+        console.log('A user disconnected. Total connections:', connectionCount);
       });
     });
   },
