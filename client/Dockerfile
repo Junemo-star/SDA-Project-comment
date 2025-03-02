@@ -23,6 +23,8 @@ COPY --from=builder /app/package*.json ./
 
 RUN npm install --production
 
-EXPOSE 3000
+# EXPOSE 3000
+# CMD ["npm", "start"]
 
-CMD ["npm", "start"]
+EXPOSE $PORT
+CMD ["sh", "-c", "npx strapi start --port $PORT"]
