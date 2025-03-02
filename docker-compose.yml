@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_STRAPI_URL=http://backend:1337
+    depends_on:
+      - backend
+
+  backend:
+    build: ./server
+    ports:
+      - "1337:1337"
+    environment:
+      - DATABASE_CLIENT=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=strapi_db
+      - DATABASE_USERNAME=strapi
+      - DATABASE_PASSWORD=strapi_password
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=strapi
+      - POSTGRES_PASSWORD=strapi_password
+      - POSTGRES_DB=strapi_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U strapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
