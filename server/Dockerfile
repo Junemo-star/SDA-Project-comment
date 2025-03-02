@@ -1,17 +1,20 @@
-FROM node:18-alpine
+# ใช้ Node.js official image
+FROM node:18
 
+# ตั้ง working directory
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# คัดลอก package.json และ yarn.lock (ถ้ามี) เพื่อติดตั้ง dependencies
+COPY package.json yarn.lock* ./
 
+# ติดตั้ง dependencies
+RUN yarn install --production
+
+# คัดลอกโค้ดทั้งหมด
 COPY . .
 
-RUN npm run build
+# Build Strapi
+RUN yarn build
 
-EXPOSE 1337
-
-CMD ["npm", "start"]
-
-# EXPOSE $PORT
-# CMD ["sh", "-c", "npx strapi start --port $PORT"]
+# รัน Strapi ในโหมด production
+CMD ["yarn", "start"]
