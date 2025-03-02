@@ -1,7 +1,7 @@
 import path from 'path';
 
 export default ({ env }) => {
-  const client = env('DATABASE_CLIENT', 'postgres'); // เปลี่ยนค่า default เป็น postgres ถ้าใช้ Google Cloud SQL
+  const client = env('DATABASE_CLIENT', 'postgres');
 
   const connections = {
     mysql: {
@@ -24,17 +24,15 @@ export default ({ env }) => {
     },
     postgres: {
       connection: {
-        // ถ้ามี DATABASE_URL ให้ใช้ก่อน (เช่น จากผู้ให้บริการ hosting)
         connectionString: env('DATABASE_URL'),
-        // Unix socket สำหรับ Google Cloud SQL
         host: env('DATABASE_HOST', '/cloudsql/sda-project-449715:asia-southeast1:strapi-db'),
         port: env.int('DATABASE_PORT', 5432),
         database: env('DATABASE_NAME', 'strapi_db'),
         user: env('DATABASE_USERNAME', 'postgres'),
-        password: env('DATABASE_PASSWORD', 'sda1234'),
-        ssl: env.bool('DATABASE_SSL', false) ? { // เปิด SSL ถ้าต้องการ
+        password: env('DATABASE_PASSWORD'), // ลบ default password
+        ssl: env.bool('DATABASE_SSL', false) ? {
           rejectUnauthorized: env.bool('DATABASE_SSL_REJECT_UNAUTHORIZED', true),
-          ca: env('DATABASE_SSL_CA', undefined), // ใส่ CA ถ้าใช้ SSL
+          ca: env('DATABASE_SSL_CA', undefined),
         } : false,
         schema: env('DATABASE_SCHEMA', 'public'),
       },
