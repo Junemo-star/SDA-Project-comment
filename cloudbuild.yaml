@@ -1,0 +1,53 @@
+steps:
+  # Build และ Push Frontend (Next.js ไป Artifact Registry)
+  - name: 'node:20'
+    args: ['yarn', 'install']
+    dir: 'client'
+  - name: 'node:20'
+    args: ['yarn', 'build']
+    dir: 'client'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/sda-project-449715/sda/nextjs-frontend:latest', '.']
+    dir: 'client'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/sda-project-449715/sda/nextjs-frontend:latest']
+
+  # Build และ Push Backend (Strapi ไป Artifact Registry)
+  - name: 'node:20'
+    args: ['yarn', 'install', '--production']
+    dir: 'server'
+  - name: 'node:20'
+    args: ['yarn', 'build']
+    dir: 'server'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/strapi-backend:latest', '.']
+    dir: 'server'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/strapi-backend:latest']
+
+  # Deploy Frontend ไป Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/gcloud'
+    args: [
+      'run', 'deploy', 'nextjs-frontend',
+      '--image', 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/nextjs-frontend:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'NEXT_PUBLIC_API_URL=https://strapi-backend-sda-project-449715-uc.a.run.app'
+    ]
+
+  # Deploy Backend ไป Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/gcloud'
+    args: [
+      'run', 'deploy', 'strapi-backend',
+      '--image', 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/strapi-backend:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--add-cloudsql-instances', 'sda-project-449715:asia-southeast1:sdadb',
+      '--set-env-vars', 'DATABASE_HOST=/cloudsql/sda-project-449715:asia-southeast1:sdadb,DATABASE_PORT=5432,DATABASE_NAME=sdadb,DATABASE_USERNAME=strapi_user,DATABASE_PASSWORD=strapi_pass,JWT_SECRET=5l+rwQZ7j/B2OfNg9XovkQ=='
+    ]
+
+images:
+  - 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/nextjs-frontend:latest'
+  - 'asia-southeast1-docker.pkg.dev/sda-project-449715/sda/strapi-backend:latest'
